@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 )
@@ -17,6 +18,7 @@ import (
 type Docs struct {
 	url      string
 	fileName string
+	ext      string
 	path     string
 	err      error
 	buff     *[]byte
@@ -35,6 +37,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("%d urls found. Downloading...", len(docs))
 
 	// 2. Create Jobs channel and Results channel
 	numJobs := len(docs)
@@ -108,7 +112,7 @@ func main() {
 }
 
 func addToZip(zw *zip.Writer, doc Docs) {
-	zf, err := zw.Create(doc.path + doc.fileName)
+	zf, err := zw.Create(path.Join(doc.path, doc.fileName+"."+doc.ext))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -140,7 +144,8 @@ func getDocs(fileName string) ([]Docs, error) {
 		docs = append(docs, Docs{
 			url:      rec[0],
 			fileName: rec[1],
-			path:     rec[2],
+			ext:      rec[2],
+			path:     rec[3],
 		})
 	}
 	return docs, nil
