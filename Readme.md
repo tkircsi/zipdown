@@ -4,12 +4,12 @@ This simple code read urls, file names and paths from a CSV file, download the f
 
 ## CSV syntax
 
-url,file name,path
+url,file name,extension, path
 
 example
 
 ```
-https://fundamenta.hu/documents/10182/2114095/1. Hatályos Díjtáblázat/22758057-b69e-c74a-b40a-69af4e5edb77?t=1610982019632,1. Hatályos Díjtáblázat,./
+https://fundamenta.hu/documents/10182/2114095/1. Hatályos Díjtáblázat/22758057-b69e-c74a-b40a-69af4e5edb77?t=1610982019632,1. Hatályos Díjtáblázat,pdf,./melléklet
 ```
 
 url: the url from where the file will be downloaded
