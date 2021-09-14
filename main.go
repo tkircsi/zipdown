@@ -16,12 +16,30 @@ import (
 )
 
 type Docs struct {
-	url      string
-	fileName string
-	ext      string
-	path     string
-	err      error
-	buff     *[]byte
+	url         string
+	fileName    string
+	contentType string
+	path        string
+	err         error
+	buff        *[]byte
+}
+
+var contentTypeMap = map[string]string{
+	"application/pdf":    "pdf",
+	"application/msword": "doc",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+	"application/vnd.ms-excel": "xls",
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":         "xlsx",
+	"application/vnd.ms-powerpoint":                                             "ppt",
+	"application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+	"application/rtf": "rtf",
+	"application/xml": "xml",
+	"text/xml":        "xml",
+	"text/plain":      "txt",
+	"image/tiff":      "tif",
+	"image/png":       "png",
+	"image/jpeg":      "jpg",
+	"image/gif":       "gif",
 }
 
 func main() {
@@ -69,6 +87,7 @@ func main() {
 					resultsCh <- doc
 					continue
 				}
+				doc.contentType = resp.Header.Get("Content-Type")
 				doc.buff = &bs
 				resp.Body.Close()
 				resultsCh <- doc
@@ -112,7 +131,12 @@ func main() {
 }
 
 func addToZip(zw *zip.Writer, doc Docs) {
-	zf, err := zw.Create(path.Join(doc.path, doc.fileName+"."+doc.ext))
+	ext, found := contentTypeMap[doc.contentType]
+	if !found {
+		ext = "txt"
+	}
+
+	zf, err := zw.Create(path.Join(doc.path, doc.fileName+"."+ext))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -142,10 +166,10 @@ func getDocs(fileName string) ([]Docs, error) {
 			return nil, err
 		}
 		docs = append(docs, Docs{
-			url:      rec[0],
-			fileName: rec[1],
-			ext:      rec[2],
-			path:     rec[3],
+			url:         rec[0],
+			fileName:    rec[1],
+			contentType: "",
+			path:        rec[2],
 		})
 	}
 	return docs, nil
