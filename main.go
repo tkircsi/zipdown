@@ -48,10 +48,15 @@ func main() {
 	maxWorkers := flag.Int("maxworker", 10, "maximum number of workers")
 	logFlag := flag.String("log", "report", "value can be 'report' or 'all'")
 	timeout := flag.Int("timeout", 5, "the number of timeout seconds for a download")
+	sep := flag.String("sep", ",", "csv separator")
 	flag.Parse()
 
+	if len([]rune(*sep)) != 1 {
+		log.Fatal("Invalid csv separator. Separator must be one ASCII char.")
+	}
+
 	// 1. Load all Urls from CSV and create Docs struct
-	docs, err := getDocs(*csvFile)
+	docs, err := getDocs(*csvFile, *sep)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -147,7 +152,7 @@ func addToZip(zw *zip.Writer, doc Docs) {
 	}
 }
 
-func getDocs(fileName string) ([]Docs, error) {
+func getDocs(fileName string, sep string) ([]Docs, error) {
 	var docs []Docs
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -156,6 +161,9 @@ func getDocs(fileName string) ([]Docs, error) {
 	defer f.Close()
 
 	r := csv.NewReader(f)
+	sepr := []rune(sep)
+	r.Comma = sepr[0]
+	line := 1
 	for {
 		rec, err := r.Read()
 
@@ -165,12 +173,17 @@ func getDocs(fileName string) ([]Docs, error) {
 		if err != nil {
 			return nil, err
 		}
+		if len(rec) != 3 {
+			log.Fatalf("Invalid column number in csv at line: %d\n", line)
+		}
+
 		docs = append(docs, Docs{
 			url:         rec[0],
 			fileName:    rec[1],
 			contentType: "",
 			path:        rec[2],
 		})
+		line++
 	}
 	return docs, nil
 }
